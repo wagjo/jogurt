@@ -14,6 +14,8 @@
             :comments "same as Clojure"}
   :dependencies
   [[org.dunaj/dunaj "0.4.0"]
+   [org.clojure/tools.nrepl "0.2.10"]
+   [cider/cider-nrepl "0.8.2"]
    [http-kit "2.1.18"]]
   :jvm-opts ^:replace ["-Xms1G" "-Xmx1G"
                        "-XX:-UseConcMarkSweepGC" "-server"])
