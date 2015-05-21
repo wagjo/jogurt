@@ -1,0 +1,70 @@
+== Configuration Management
+
+In the small, all is well. On the Cloud, oh the horror!
+
+=== Problems
+
+* Eliminate the need to rebuild image when infrastructure changes
+* Use configuration for dependency injection
+* Keep out parts of the configuration that prevent the image to be
+  reused for instantiating multiple nodes
+* Keep secret keys out of the git
+* Keep secret keys out of the built image
+* Pass configuration upon start of the instance
+
+Stuff that is out of scope:
+
+* Make changes in configuration
+** How to publish e.g. the endpoint of our service to consumers and
+   the fact that it is ready to use.
+* Communication of running nodes between each other
+** Handle with zookeeper, consul or etcd
+* Reflect changes in the configuration
+** By watching or getting notified of change and implementing
+   complicated and error prone logic to reconfigure running instance
+** By restarting whole instance. Who restarts the server?
+* Who sets up the external configuration
+* Who provisions the servers
+
+=== Approach
+
+Follow http://12factor.net/config[The Twelve Factors].
+
+Configuration is static. When the config changes, service is
+restarted. Design choice is to have stateless fail-fast services,
+that have their configuration stored on various places.
+
+* in a config files inside classpath. Support should be for `json`,
+  `edn` and `clj` files. By definition, name of such configuration
+  file is `config.xxx`
+* in environment variables
+* in system properties passed to the JVM
+* as a part of a build script, e.g. somewhere in lein
+** either in profiles.clj or in project.clj
+** TODO analyze this more
+** good for dev and test to keep secrets out 
+* external url, e.g. s3 object
+** good for secrets and for prod
+
+Configuration can contain information on which module to load.
+This enables dependency injection.
+The module loading logic is implemented by the application.
+
+Technologies:
+
+* https://github.com/weavejester/environ[environ] for the access to
+  environment and system properties.
+** Environ is simple and OK to use
+* https://github.com/sonian/carica[carica] for managing configuration
+  scattered through classpath
+** Tried carica, it is a mess!
+* ad hoc loading of external config files, with a simple slurp
+** idea is that config is stored inside VPC, and access to it is
+restricted by the cloud configuration, and available only from the
+inside of the VPC. Whoever configures the cloud sets the configuration
+and also starts instances in a correct order.
+* tweaks
+** convert env & lein-env -  JAVA_HOME to {:java {:home}}
+** convert sysprop - java.home {:java {:home}}
+** (get-in conf [:java :home] 'default)
+** TODO: handle types? (envs are string only)

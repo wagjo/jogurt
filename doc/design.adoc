@@ -1,0 +1,23 @@
+== Design
+
+Using functional programming, immutable data and loose
+coupling. We want to be agile, avoid incidental complexity and
+unnecessary bureaucracy. We want simple architecture, manageable by
+a small team. Refactoring and prototyping will happen often, and
+requirements will change. We want to spend little time on things
+that may be no longer needed week later.
+
+We want to be able to have dev, testing and prod profiles. We will
+use testing, but as we are using functional programming and Clojure,
+we hope that mocking/stubs and integration testing will not take
+long time to prepare. We want to have low maintenance overhead and
+keep app's TCO low. We are deploying on a cloud, but we should not be
+tied to a specific provider.
+
+=== Server
+
+By design, we have a stateless server that can fail fast.
+Image is built once and is used to instantiate multiple nodes in a
+load balancer. We are using JVM and Clojure.
+
+=== Client

@@ -10,6 +10,7 @@ Yet another Blog. Showcase of using Clojure with hip technologies.
 * HTTP-Kit
 * Embedded nrepl with Cider handler
 ** Use ssh tunnel to access it remotely
+* Ring, Compojure, Hiccup
 
 == License
 

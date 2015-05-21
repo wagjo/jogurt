@@ -1,0 +1,64 @@
+@import url(http://fonts.googleapis.com/css?family=Amaranth:400,700|Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800);
+
+body {
+    font-size:16px;
+    font-family:Open Sans, Sans Serif;
+    color:#222;
+    margin:0;
+}
+
+#jghead {
+    display:flex;
+    align-items:center;
+    border-bottom:1px dotted #222;
+    background-color:#f5f5ff;
+}
+
+#jghead div {
+}
+
+#jgsignup {
+    flex-grow:1;
+    text-align:right;
+}
+
+.jgtitle {
+    font-family:Amaranth, Sans Serif;
+    font-size:32px;
+    color:#115;
+}
+
+img {
+    border:none;
+}
+
+a {
+    text-decoration:none;
+    color:#115;
+}
+
+a:hover {
+    text-decoration:underline;
+}
+
+.jgsb a {
+    border-radius:3px;
+    color:#5a5;
+    font-weight:700;
+    background-color:#ccc;
+    display:inline-block;
+    padding:0.5em;
+    margin-right:1em;
+    
+}
+
+.jgsob a {
+    border-radius:3px;
+    color:#a55;
+    font-weight:700;
+    background-color:#ccc;
+    display:inline-block;
+    padding:0.5em;
+    margin-right:1em;
+    
+}
