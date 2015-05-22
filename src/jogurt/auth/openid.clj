@@ -34,7 +34,7 @@
         protocol (sget-in cfg [:env :jogurt-protocol])
         port (sget-in cfg [:env :jogurt-port])
         path (sget-in cfg :callback-path)]
-    (->str protocol "://" hostname ":" port "/" path)))
+    (->str protocol "://" hostname "/" path)))
 
 (deftype OpenIdAuthEngine [cfg]
   IAuthEngine
