@@ -189,14 +189,16 @@
         uemail (:user-email (:session request))
         user (js/row store :users uid)
         uname (str (slice uemail 0 (ds/index-of uemail \@)))
-        pid (canonical (du/random))]
+        pid (canonical (du/random))
+        ret (if (nil? uid)
+              (rur/redirect "/")
+              (do
+                (when (empty? user)
+                  (js/put! store :users uid {:email uemail :name uname}))
+                (js/put! store :posts pid {:title ptitle :body pbody
+                                           :author uid
+                                           :date (canonical (now))})
+                (rur/redirect (->str "/post/" pid))))]
+    (sleep 500)
     (pp! uid uemail)
-    (if (nil? uid)
-      (rur/redirect "/")
-      (do
-        (when (empty? user)
-          (js/put! store :users uid {:email uemail :name uname}))
-        (js/put! store :posts pid {:title ptitle :body pbody
-                                   :author uid
-                                   :date (canonical (now))})
-        (rur/redirect (->str "/post/" pid))))))
+    ret))
