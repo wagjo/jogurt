@@ -5,6 +5,7 @@ body {
     font-family:Open Sans, Sans Serif;
     color:#222;
     margin:0;
+    background-color:#eee !important;
 }
 
 #jghead {
@@ -22,7 +23,7 @@ body {
     text-align:right;
 }
 
-.jgtitle {
+.jghtitle {
     font-family:Amaranth, Sans Serif;
     font-size:32px;
     color:#115;
@@ -33,12 +34,12 @@ img {
 }
 
 a {
-    text-decoration:none;
+    text-decoration:none !important;
     color:#115;
 }
 
 a:hover {
-    text-decoration:underline;
+    text-decoration:underline !important;
 }
 
 .jgsb a {
@@ -52,6 +53,21 @@ a:hover {
     
 }
 
+.jghnew a {
+    border-radius:3px;
+    color:#5a5;
+    font-weight:700;
+    background-color:#ccc;
+    display:inline-block;
+    padding:0.5em;
+    margin-right:1em;
+    
+}
+
+.jghnew, .jgsob {
+    display:inline-block;
+}
+
 .jgsob a {
     border-radius:3px;
     color:#a55;
@@ -62,3 +78,68 @@ a:hover {
     margin-right:1em;
     
 }
+
+#jgcontent {
+    padding:2em;
+}
+
+#jgfoot {
+    text-align:center;
+}
+
+.jgpost {
+    padding:1em;
+    margin:2em;
+    background-color:white;
+    max-width:1000px;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+.jgtitle {
+    color: rgb(122, 37, 24);
+    font-family: 'Open Sans', 'DejaVu Sans', sans-serif;
+    font-size: 44px;
+    font-style: normal;
+    font-weight: 300;
+}
+
+.jgmeta {
+    font-size:14px;
+    text-align:left;
+    color:#666;
+}
+
+.desc {
+    font-family:Amaranth, Sans Serif;
+    font-size:32px;
+    color:#115;
+}
+
+textarea {
+    margin:1em;
+}
+
+input {
+    margin:1em;
+}
+
+#ptitle {
+    width:50%;   
+}
+
+e {
+    width:50%;   
+}
+
+#pbody {
+    width:80%;
+    height:500px;
+}
+
+#pbut {
+    height:50px;
+    width:150px;
+    padding:0.5em;
+}
+

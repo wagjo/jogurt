@@ -11,30 +11,25 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns jogurt.server
-  "Web app server"
-  (:require [org.httpkit.server :as hs]
-            [jogurt.routes :as jr]
-            [jogurt.cfg :refer [nget-in]]))
+  "Web app server."
+  (:require 
+   [dunaj.resource :refer [IAcquirableFactory IReleasable]]
+   [dunaj.resource.helper :refer [defreleasable]]
+   [org.httpkit.server :as hs]
+   [jogurt.util.cfg :refer [nget-in sget-in]]))
 
+(defreleasable Server
+  [stop-fn]
+  IReleasable
+  (-release! [this] (stop-fn)))
 
-(defn start!
-  "Starts web server. Returns function of zero args that shuts down
-  the server when invoked.
-  Uses [:env :jogurt-port] for port number, defaults to 8080."
-  [cfg]
-  (let [port (nget-in cfg [:env :jogurt-port] 8080)
-        ip (get-in cfg [:env :jogurt-ip] "0.0.0.0")]
-    (hs/run-server #'jr/app-routes {:port port :ip ip})))
+(defrecord ServerFactory [cfg routes]
+  IAcquirableFactory
+  (-acquire! [this]
+    (let [port (nget-in cfg [:env :jogurt-port] 8080)
+          ip (sget-in cfg [:env :jogurt-ip] "0.0.0.0")
+          stop-fn (hs/run-server routes {:port port :ip ip})]
+      (->Server stop-fn))))
 
-
-;;;; Scratch
-
-(comment
-  
-  (def s (start! (jogurt.cfg/cfg)))
-
-  (keys (get-in (jogurt.cfg/cfg) [:env :jogurt-client-id]))
-
-  (s)
-
-)
+(def server-factory
+  (->ServerFactory nil nil))

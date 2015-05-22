@@ -13,22 +13,29 @@
 (ns jogurt.auth.fake
   "Fake authentication method."
   (:api dunaj)
-  (:require [jogurt.auth :refer [IAuthEngine IAuthEngineFactory]]
-            [hiccup.element :refer [link-to]]
-            [ring.middleware.session :refer [session-response]]
-            [ring.util.response :as rur]))
+  (:require
+   [dunaj.resource :refer [IAcquirableFactory]]
+   [jogurt.cfg :refer [sget]]
+   [jogurt.auth :refer [IAuthEngine IAuthEngineFactory]]
+   [hiccup.element :refer [link-to]]
+   [ring.middleware.session :refer [session-response]]
+   [ring.util.response :refer [redirect]]))
 
-(defrecord FakeAuthEngine []
+
+(deftype FakeAuthEngine [cfg]
   IAuthEngine
-  (-sign-in [this cfg]
-    [:div
-     [:div.jgsb
-      (link-to "authback"
-               [:span "Sign in with fake credentials"])]])
-  (-callback [this cfg request]
-    (-> (rur/redirect "/")
-     (assoc-in [:session :user-id] 1))))
+  (-sign-in [this]
+    (let [label [:span "Sign in with fake credentials"]
+          path (sget cfg :callback-path "authback")]
+      [:div [:div.jgsb (link-to path label)]]))
+  (-callback [this request]
+    (let [fake-user-id (sget cfg :fake-user-id "1")]
+      (-> (redirect "/")
+          (assoc-in [:session :user-id] fake-user-id)))))
+
+(defrecord FakeAuthEngineFactory [cfg]
+  IAcquirableFactory
+  (-acquire! [this] (->FakeAuthEngine cfg)))
 
 (def auth-factory
-  (reify IAuthEngineFactory
-    (-auth [this cfg] (->FakeAuthEngine))))
+  (->FakeAuthEngineFactory nil))

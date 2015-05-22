@@ -7,14 +7,15 @@
   :resource-paths ["res"]
   :java-source-paths ["src/jvm"]
   :main ^:skip-aot jogurt.core
-  :global-vars {*warn-on-reflection* true}
+;  :global-vars {*warn-on-reflection* true}
   :license {:name "Eclipse Public License - v 1.0"
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo
             :comments "same as Clojure"}
   :profiles {:dev {}}
   :dependencies
-  [[org.dunaj/dunaj "0.4.0"]
+  [[org.dunaj/dunaj "0.4.1-SNAPSHOT"]
+   [org.asciidoctor/asciidoctorj "1.5.2"]
    [org.clojure/tools.nrepl "0.2.10"]
    [cider/cider-nrepl "0.8.2"]
    [javax.servlet/servlet-api "2.5"]

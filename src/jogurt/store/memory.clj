@@ -14,9 +14,10 @@
   "Memory storage."
   (:api dunaj)
   (:require
-   [jogurt.store :as js :refer [IStoreEngine IStoreEngineFactory]]))
+   [dunaj.resource :refer [IAcquirableFactory]]
+   [jogurt.store :as js :refer [IStoreEngine]]))
 
-(defrecord MemoryStoreEngine [db-ref]
+(deftype MemoryStoreEngine [cfg db-ref]
   IStoreEngine
   (-init! [this tables]
     (let [ifn (fn [db] (merge (into {} (map #(pair % {}) tables)) db))]
@@ -25,12 +26,12 @@
   (-sorted [this table attr val sort]
     (let [rows (seq (get @db-ref table))
           ff (fn [[id attrs]]
-               (if (identical? attr ::id)
-                 (= val id)
-                 (= val (get attrs attr))))
+               (cond (nil? attr) true
+                     (identical? attr ::id) (= val id)
+                     :else (= val (get attrs attr))))
           frows (filter ff rows)
           srows (if sort
-                  (sort-by #(get (second %) sort) frows)
+                  (reverse (sort-by #(get (second %) sort) frows))
                   frows)]
       (vec (map (fn [[id attrs]] (assoc attrs ::id id)) srows))))
   (-put! [this table id kv-map]
@@ -41,23 +42,31 @@
     (let [uf #(dissoc % id)]
       (alter! db-ref #(update % table uf)))))
 
-(def store-factory
-  (reify IStoreEngineFactory
-    (-store [this cfg] (->MemoryStoreEngine (atom {})))))
+(defrecord MemoryStoreEngineFactory [cfg]
+  IAcquirableFactory
+  (-acquire! [this] (->MemoryStoreEngine cfg (atom {}))))
 
+(def store-factory
+  (->MemoryStoreEngineFactory nil))
+
+
+;;;; Scratch
 
 (comment
 
-  (def s (js/store store-factory {}))
+
+  (def ss (grab-scope (acquire! store-factory)))
+
+  (def s (first ss))
 
   (js/id-attr s)
   (js/init! s :users :posts)
   (js/row s :users 1)
   (js/row s :users 2)
   (js/row s :users 3)
-  (js/put! s :users 1 {:name "Jozo"})
+  (js/put! s :users "1" {:name "Jozo"})
   (js/put! s :users 2 {:name "Samko"})
-  (js/delete! s :users 1)
+  (js/delete! s :users "1")
 
   {:users {"1" {:name "Fake User" :email "fake.user@example.com"}}
    :posts {"1" {:title "Sample post"

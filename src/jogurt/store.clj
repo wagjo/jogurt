@@ -13,7 +13,10 @@
 (ns jogurt.store
   "Data store"
   (:api dunaj :exclude [get put!])
-  (:require [dunaj.lib :refer [require!]]))
+  (:require [dunaj.lib :refer [require!]]
+            [dunaj.coll.util :refer [select-keys]]))
+
+;;;; SPI
 
 (defprotocol IStoreEngine
   "A protocol for store implementers."
@@ -25,7 +28,7 @@
     [this])
   (-sorted
     "Returns rows that have val under given attr,
-    sorted by sort attr. Must accept nil sort."
+    sorted by sort attr. Must accept nil sort or attr."
     [this table attr val sort])
   (-put!
     "Puts attributes into given table, under id"
@@ -34,26 +37,20 @@
     "Deletes given row."
     [this table id]))
 
-(defprotocol IStoreEngineFactory
-  "A factory protocol for instantiating store engines."
-  (-store [this cfg]))
-
-(defn store :- IStoreEngine
-  "Returns store engine from a given store factory and configuration."
-  [factory :- IStoreEngineFactory cfg]
-  (-store factory cfg))
-
-(defn fetch-factory :- IStoreEngineFactory
-  "Returns store factory from a given fully qualified string symbol."
-  [sym]
-  (let [sfs (symbol (name sym))]
-    (require! (symbol (namespace sfs)))
-    (eval sfs)))
+;;;; Public API
 
 (defn init!
   "Initializes database. Makes sure given tables are present"
   [store & tables]
-  (-init! store tables))
+  (-init! store tables)
+  (require! 'dunaj.user)
+  (with-bindings [#'clojure.core/*ns* (clojure.core/the-ns 'dunaj.user)]
+    (let [seed (eval (with-scope
+                       (parse-whole edn (slurp "cp:default.edn"))))
+          tosend (select-keys seed tables)]
+      (doseq [[table rowmap] (seq tosend)]
+        (doseq [[id attrmap] (seq rowmap)]
+          (-put! store table id attrmap))))))
 
 (defn id-attr
   "Returns name of attr that represents primary key."

@@ -1,0 +1,64 @@
+{:users {"1" {:name "Alice Short" :email "alice.short@example.com"}
+         "2" {:name "Bob Long" :email "bob.long@example.com"}}
+ :posts {"1" {:title "Sample post"
+              :body "
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi et viverra sapien. Nullam luctus varius elit suscipit varius.
+
+NOTE: Ut condimentum, urna ac venenatis volutpat, nisi nunc tempus tortor, id pharetra turpis mi ac risus. Curabitur vel ornare arcu. In laoreet dui nec quam semper, quis pretium est vestibulum. Nullam rutrum egestas sapien, ut hendrerit sapien bibendum non. Sed varius mi in rutrum blandit. Etiam non mauris sed orci convallis vulputate. Curabitur faucibus felis ut tristique iaculis. Nam ut nunc ac enim ultrices lobortis. Phasellus egestas diam vel felis pellentesque viverra. Curabitur eu dolor at magna bibendum mollis id ut odio. In leo turpis, dictum vel sem sed, bibendum dapibus velit.
+
+[.float-group]
+--
+image::https://i.imgflip.com/lunr5.jpg[Doge, float=\"right\"]
+
+Mauris eros ligula, sollicitudin sit amet ligula fringilla, lacinia porttitor nunc. Phasellus imperdiet eu lacus id gravida. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; 
+
+Etiam bibendum ullamcorper cursus. Pellentesque vitae neque dignissim, porttitor enim at, tincidunt augue. Maecenas ut diam non dolor faucibus dapibus. Nullam sit amet laoreet mauris, ut molestie dui. Proin tempus arcu id neque vestibulum, sit amet tempor erat mattis. Nullam sed facilisis dui. Ut vitae dui metus.
+--"
+              :author "1"
+              :date (canonical (now))}
+         "2" {:title "Lorem Ipsum"
+              :body "In efficitur elit vel rhoncus consequat. Ut eget sapien non libero bibendum porttitor. Duis accumsan iaculis augue, et gravida dolor pharetra quis. 
+
+.convallis vulputate
+====
+Aenean elit est, interdum eget quam vitae, accumsan varius ligula. Fusce pulvinar accumsan nunc, eget dapibus mauris laoreet eu. Sed sed nunc vitae arcu rhoncus congue eget et neque.
+====
+
+Proin quis consectetur leo, nec feugiat ante. Aliquam viverra metus sed lacus semper congue. Pellentesque auctor nibh vitae orci molestie mattis.
+
+CAUTION: Nunc fringilla vulputate scelerisque. Nulla rhoncus nunc metus, sed fringilla lorem dapibus in.
+
+Quisque euismod mattis justo sed pulvinar. Donec in nulla ut risus gravida iaculis. 
+
+.MemoryStore
+[source, clojure, linesnum]
+--
+(deftype MemoryStoreEngine [cfg db-ref]
+  IStoreEngine
+  (-init! [this tables]
+    (let [ifn (fn [db] (merge (into {} (map #(pair % {}) tables)) db))]
+      (alter! db-ref ifn)))
+  (-id [this] ::id)
+  (-sorted [this table attr val sort]
+    (let [rows (seq (get @db-ref table))
+          ff (fn [[id attrs]]
+               (cond (nil? attr) true
+                     (identical? attr ::id) (= val id)
+                     :else (= val (get attrs attr))))
+          frows (filter ff rows)
+          srows (if sort
+                  (sort-by #(get (second %) sort) frows)
+                  frows)]
+      (vec (map (fn [[id attrs]] (assoc attrs ::id id)) srows))))
+  (-put! [this table id kv-map]
+    (let [rf #(merge % kv-map)
+          uf #(update % id rf)]
+      (alter! db-ref #(update % table uf))))
+  (-delete! [this table id]
+    (let [uf #(dissoc % id)]
+      (alter! db-ref #(update % table uf)))))
+--
+
+Integer ut leo volutpat, cursus nibh lacinia, consequat ante. Vivamus ut sapien dictum, imperdiet enim commodo, placerat ex. Suspendisse purus dui, congue sed vehicula eu, blandit et lorem. Aenean rutrum bibendum quam quis lobortis. Pellentesque erat sem, dapibus in lorem sed, fermentum tincidunt lorem. In semper vel velit commodo bibendum. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus."
+              :author "2"
+              :date (canonical #inst "2015-02-04")}}}

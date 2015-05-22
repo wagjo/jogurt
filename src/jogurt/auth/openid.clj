@@ -13,63 +13,54 @@
 (ns jogurt.auth.openid
   "OpenID Connect authentication method."
   (:api dunaj)
-  (:require [jogurt.auth :refer [IAuthEngine IAuthEngineFactory]]
+  (:require [dunaj.format.clj :refer [pretty-clj]]
+            [dunaj.host.array :as dha]
+            [dunaj.resource :refer [IAcquirableFactory request!]]
             [hiccup.element :refer [link-to]]
             [hiccup.page :as hp]
             [ring.util.codec :as ruc]
-            [dunaj.format.clj :refer [pretty-clj]]
-            [dunaj.host.array :as dha]
-            [clj-jwt.core :as jwt]
+            [ring.util.response :as rur]
             [ring.middleware.session :refer [session-response]]
-            [ring.util.response :as rur]))
+            [clj-jwt.core :as jwt]
+            [jogurt.util :as ju]
+            [jogurt.util.cfg :refer [sget-in]]
+            [jogurt.auth :refer [IAuthEngine]]))
 
-(defn make-query-string
-  "Transforms a map into url params"
-  [m]
-  (->> (for [[k v] m]
-         (->str k "=" (java.net.URLEncoder/encode v "UTF-8")))
-       (interpose "&")
-       (apply ->str)))
 
-(defn redirect-uri
-  [cfg path]
-  (let [hostname (get-in cfg [:env :jogurt-hostname])
-        protocol (get-in cfg [:env :jogurt-protocol])
-        port (get-in cfg [:env :jogurt-port])]
+(defn redirect-uri :- String
+  "Returns a redirect uri string."
+  [cfg :- {}]
+  (let [hostname (sget-in cfg [:env :jogurt-hostname])
+        protocol (sget-in cfg [:env :jogurt-protocol])
+        port (sget-in cfg [:env :jogurt-port])
+        path (sget-in cfg :callback-path)]
     (->str protocol "://" hostname ":" port "/" path)))
 
-(defrecord OpenIdAuthEngine []
+(deftype OpenIdAuthEngine [cfg]
   IAuthEngine
-  (-sign-in [this cfg]
+  (-sign-in [this]
     [:div
      [:div.jgsb
       (let [base-url "https://accounts.google.com/o/oauth2/auth"
-            anti-forgery (->str (get-in cfg [:anti-forgery]))
-            args {"client_id" (get-in cfg [:env :jogurt-client-id])
+            args {"client_id" (sget-in cfg [:env :jogurt-client-id])
                   "response_type" "code"
                   "scope" "openid email"
-                  "redirect_uri" (redirect-uri cfg "authback")
-                  "state" anti-forgery}]       
-        (link-to (->str base-url "?" (make-query-string args))
-                 [:span "Sign in with Google"]))]])
-  (-callback [this cfg request]
-    (let [state (get-in request [:params :state])
-          ;; TODO assert state equals with anti-forgery in cfg
-          code (get-in request [:params :code])
-          hr (http "https://www.googleapis.com/oauth2/v3/token"
-                   :request-method :post)
-          client-secret (get-in cfg [:env :jogurt-client-secret])
-          anti-forgery (->str (get-in cfg [:anti-forgery]))
-          req {"code" code
-               "client_id" (get-in cfg [:env :jogurt-client-id])
-               "client_secret" client-secret
-               "redirect_uri" (redirect-uri cfg "authback")
-               "grant_type" "authorization_code"}
-          _ (pr! (make-query-string req))
-          resp (with-io-scope 
-                 (let [r (acquire! hr)]
-                   (write! r (print utf-8 (make-query-string req)))
-                   (str (parse utf-8 (read! r)))))
+                  "redirect_uri" (redirect-uri cfg)
+                  "state" (sget-in cfg [:anti-forgery])}
+            url (->str base-url "?" (ju/make-query-string args))]
+        (link-to url [:span "Sign in with Google"]))]])
+  (-callback [this request]
+    (let [code (get-in request [:params :code])
+          state (get-in request [:params :state])
+          ;; TODO: assert state equals with anti-forgery in cfg
+          req
+          {"code" code
+           "client_id" (sget-in cfg [:env :jogurt-client-id])
+           "client_secret" (sget-in cfg [:env :jogurt-client-secret])
+           "redirect_uri" (redirect-uri cfg)
+           "grant_type" "authorization_code"}
+          resp (ju/post "https://www.googleapis.com/oauth2/v3/token"
+                        req)
           jsresp (parse-whole json resp)
           token (jwt/str->jwt (get jsresp "id_token"))
           email (get-in token [:claims :email])
@@ -93,6 +84,9 @@
           (assoc-in [:session :user-id] user-id)
           (assoc-in [:session :user-email] email)))))
 
+(defrecord OpenIdAuthEngineFactory [cfg]
+  IAcquirableFactory
+  (-acquire! [this] (->OpenIdAuthEngine cfg)))
+
 (def auth-factory
-  (reify IAuthEngineFactory
-    (-auth [this cfg] (->OpenIdAuthEngine))))
+  (->OpenIdAuthEngineFactory nil))

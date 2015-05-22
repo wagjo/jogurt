@@ -12,42 +12,27 @@
 
 (ns jogurt.auth
   "Authentication methods."
-  (:api dunaj)
-  (:require [dunaj.lib :refer [require!]]))
+  (:api dunaj))
+
+;;;; SPI
 
 (defprotocol IAuthEngine
-  "A protocol for auth implementers."
-  (-sign-in
+  "A protocol for auth implementations."
+  (-sign-in :- Any
     "Returns hiccup content for signing in."
-    [this cfg])
-  (-callback
+    [this])
+  (-callback :- {}
     "Returns ring response for signing callback."
-    [this cfg request]))
+    [this request :- {}]))
 
-(defprotocol IAuthEngineFactory
-  "A factory protocol for instantiating auth engines."
-  (-auth [this cfg]))
+;;;; Public API
 
-(defn auth :- IAuthEngine
-  "Returns auth engine from a given auth factory and configuration."
-  [factory :- IAuthEngineFactory cfg]
-  (-auth factory cfg))
+(defn sign-in :- Any
+  "Returns sign-in content."
+  [auth :- IAuthEngine]
+  (-sign-in auth))
 
-(defn fetch-factory :- IAuthEngineFactory
-  "Returns auth factory from a given fully qualified string symbol."
-  [sym]
-  (let [afs (symbol (name sym))]
-    (require! (symbol (namespace afs)))
-    (eval afs)))
-
-(defn sign-in
-  "Returns sign in content."
-  [auth cfg]
-  (-sign-in auth cfg))
-
-(defn callback
+(defn callback :- {}
   "Returns callback response."
-  [auth cfg request]
-  (let [resp (-callback auth cfg request)]
-    (pp! resp)
-    resp))
+  [auth :- IAuthEngine, request :- {}]
+  (-callback auth request))
