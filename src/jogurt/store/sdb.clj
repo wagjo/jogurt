@@ -151,6 +151,6 @@
                 :body "== Sample post\n\nBla bla"
                 :author "1"
                 :date (canonical (now))}}}
-  
+
 
 )

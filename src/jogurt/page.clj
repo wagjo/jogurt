@@ -199,7 +199,7 @@
                          {:title ptitle :body pbody
                           :author uid
                           :date (canonical
-                                 (date-instant-factory (now)))})
+                                 (instant date-instant-factory (now)))})
                 (rur/redirect (->str "/post/" pid))))]
     (sleep 500)
     (pp! uid uemail)
