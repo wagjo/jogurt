@@ -195,9 +195,11 @@
               (do
                 (when (empty? user)
                   (js/put! store :users uid {:email uemail :name uname}))
-                (js/put! store :posts pid {:title ptitle :body pbody
-                                           :author uid
-                                           :date (canonical (now))})
+                (js/put! store :posts pid
+                         {:title ptitle :body pbody
+                          :author uid
+                          :date (canonical
+                                 (date-instant-factory (now)))})
                 (rur/redirect (->str "/post/" pid))))]
     (sleep 500)
     (pp! uid uemail)

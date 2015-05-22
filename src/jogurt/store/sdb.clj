@@ -119,12 +119,12 @@
 
   (:param2 (rum/get-attrs sdbc "foo" "2"))
 
-  (rum/query sdbc `{select * from "foo"})
+  (rum/query sdbc `{select [:date] from "posts"})
 
   (rum/query sdbc `{select * from "foo"
                     where (= "param1" "val21")})
 
-  (rum/delete-attrs sdbc "foo" "1")
+  (rum/delete-attrs sdbc "posts" "69294c4d-aeb8-4399-8c6d-944e4e755f91")
 
   (rum/list-domains client)
 
