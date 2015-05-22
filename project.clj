@@ -19,6 +19,7 @@
    [org.clojure/tools.nrepl "0.2.10"]
    [cider/cider-nrepl "0.8.2"]
    [javax.servlet/servlet-api "2.5"]
+   [com.cemerick/rummage "1.0.1" :exclusions [org.clojure/clojure]]
    [ring/ring-codec "1.0.0" :exclusions [org.clojure/clojure]]
    [clj-jwt "0.0.13" :exclusions [org.clojure/clojure]]
    [environ "1.0.0" :exclusions [org.clojure/clojure]]

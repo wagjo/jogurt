@@ -15,7 +15,7 @@ Mauris eros ligula, sollicitudin sit amet ligula fringilla, lacinia porttitor nu
 Etiam bibendum ullamcorper cursus. Pellentesque vitae neque dignissim, porttitor enim at, tincidunt augue. Maecenas ut diam non dolor faucibus dapibus. Nullam sit amet laoreet mauris, ut molestie dui. Proin tempus arcu id neque vestibulum, sit amet tempor erat mattis. Nullam sed facilisis dui. Ut vitae dui metus.
 --"
               :author "1"
-              :date (canonical (now))}
+              :date  (canonical #inst "2015-03-15")}
          "2" {:title "Lorem Ipsum"
               :body "In efficitur elit vel rhoncus consequat. Ut eget sapien non libero bibendum porttitor. Duis accumsan iaculis augue, et gravida dolor pharetra quis. 
 
