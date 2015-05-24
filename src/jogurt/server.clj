@@ -15,21 +15,21 @@
   (:require 
    [dunaj.resource :refer [IAcquirableFactory IReleasable]]
    [dunaj.resource.helper :refer [defreleasable]]
-   [org.httpkit.server :as hs]
+   [immutant.web :as web]
    [jogurt.util.cfg :refer [nget-in sget-in]]))
 
 (defreleasable Server
-  [stop-fn]
+  [stop-handler]
   IReleasable
-  (-release! [this] (stop-fn)))
+  (-release! [this] (web/stop stop-handler)))
 
 (defrecord ServerFactory [cfg routes]
   IAcquirableFactory
   (-acquire! [this]
     (let [port (nget-in cfg [:env :jogurt-port] 8080)
           ip (sget-in cfg [:env :jogurt-ip] "0.0.0.0")
-          stop-fn (hs/run-server routes {:port port :ip ip})]
-      (->Server stop-fn))))
+          stop-handler (web/run routes {:port port :host ip :path "/"})]
+      (->Server stop-handler))))
 
 (def server-factory
   (->ServerFactory nil nil))

@@ -13,7 +13,8 @@
 (ns jogurt.util.cfg
   "Manage project's configuration."
   (:api dunaj)
-  (:require [environ.core :as ec]))
+  (:require [environ.core :as ec]
+            [dunaj.string :as ds]))
 
 (defn cfg :- {}
   "Returns config map. Merges contents of config.edn on a classpath
@@ -56,6 +57,36 @@
          (string? v) v
          (canonical? v) (canonical v)
          :else (->str v))))))
+
+(def bmap {"true" true "false" false
+           "t" true "f" false
+           "1" true "0" false
+           "yes" true "no" false
+           "on" true "off" false
+           "enable" true "disable" false
+           "enabled" true "disabled" false
+           "default" :default})
+
+(defn bget-in :- Boolean
+  "Like get-in, but coerces to boolean. Does not parse default value.
+  Defaults to false."
+  ([cfg :- {}, ks :- Any]
+   (bget-in cfg ks false))
+  ([cfg :- {}, ks :- Any, default-value :- Boolean]
+   (if-let [s (sget-in cfg ks nil)]
+     (let [r (get bmap (ds/lower-case s))]
+       (cond
+         (nil? r) (throw (illegal-argument "value not recognized"))
+         (identical? :default r) default-value
+         :else r)))))
+
+(defn bget :- Boolean
+  "Like get, but coerces to boolean. Does not parse default value.
+  Defaults to false"
+  ([cfg :- {}, k :- Any]
+   (bget-in cfg [k]))
+  ([cfg :- {}, k :- Any, default :- Boolean]
+   (bget-in cfg [k] default)))
 
 (defn sget :- (Maybe String)
   "Like get, but coerces to string. Does not parse default value.

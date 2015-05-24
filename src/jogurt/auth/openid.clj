@@ -23,7 +23,7 @@
             [ring.middleware.session :refer [session-response]]
             [clj-jwt.core :as jwt]
             [jogurt.util :as ju]
-            [jogurt.util.cfg :refer [sget-in]]
+            [jogurt.util.cfg :refer [sget-in bget-in]]
             [jogurt.auth :refer [IAuthEngine]]))
 
 
@@ -33,8 +33,10 @@
   (let [hostname (sget-in cfg [:env :jogurt-hostname])
         protocol (sget-in cfg [:env :jogurt-protocol])
         port (sget-in cfg [:env :jogurt-port])
-        path (sget-in cfg :callback-path)]
-    (->str protocol "://" hostname "/" path)))
+        path (sget-in cfg :callback-path)
+        explicit-port? (bget-in cfg [:env :jogurt-explicit-port] true)
+        sport (if explicit-port? (->str ":" port) "")]
+    (->str protocol "://" hostname sport "/" path)))
 
 (deftype OpenIdAuthEngine [cfg]
   IAuthEngine

@@ -29,7 +29,7 @@
   "Transforms a map into url params"
   [m :- {}]
   (->> (for [[k v] m]
-         (->str k "=" (java.net.URLEncoder/encode v "UTF-8")))
+         (->str k "=" (java.net.URLEncoder/encode (or v "") "UTF-8")))
        (interpose "&")
        (apply ->str)))
 
