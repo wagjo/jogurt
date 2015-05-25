@@ -12,8 +12,8 @@
 
 (ns jogurt.store-test
   "Data store"
+  (:api dunaj)
   (:require
-   [dunaj.resource :refer [grab-scope release-scope! acquire!]]
    [jogurt.store :as js]
    [jogurt.util.cfg :refer [sget-in] :as juc]
    [jogurt.util :as ju]
@@ -30,11 +30,11 @@
 
 (deftest put-get-test
   (testing "Testing put and get to store"
-    (let [[store scope] (grab-scope (acquire! test-store-factory))
-          table "mytable"
-          id "my-id"
-          data {"foo" "bar"}
-          want (assoc data (js/id-attr store) id)]
-      (js/put! store table id data)
-      (is (= want (js/row store table id)))
-      (release-scope! scope))))
+    (with-scope
+      (let [store (acquire! test-store-factory)
+            table "mytable"
+            id "my-id"
+            data {"foo" "bar"}
+            want (assoc data (js/id-attr store) id)]
+        (js/put! store table id data)
+        (is (= want (js/row store table id)))))))
