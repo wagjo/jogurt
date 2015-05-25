@@ -23,13 +23,19 @@
   IReleasable
   (-release! [this] (web/stop stop-handler)))
 
-(defrecord ServerFactory [cfg routes]
+(defrecord ServerFactory [cfg routes servlet store]
   IAcquirableFactory
   (-acquire! [this]
     (let [port (nget-in cfg [:env :jogurt-port] 8080)
           ip (sget-in cfg [:env :jogurt-ip] "0.0.0.0")
-          stop-handler (web/run routes {:port port :host ip :path "/"})]
+          ring-handler
+          (web/run routes {:port port :host ip :path "/"})
+          stop-handler
+          (web/run servlet (assoc ring-handler
+                                  :port port
+                                  :host ip
+                                  :path "/edit"))]
       (->Server stop-handler))))
 
 (def server-factory
-  (->ServerFactory nil nil))
+  (->ServerFactory nil nil nil nil))

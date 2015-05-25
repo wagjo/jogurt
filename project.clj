@@ -7,6 +7,7 @@
   :resource-paths ["res"]
   :java-source-paths ["src/jvm"]
   :main ^:skip-aot jogurt.core
+  :aot [jogurt.servlet.vaadinui jogurt.servlet.myvaadinservlet]
 ;  :global-vars {*warn-on-reflection* true}
   :license {:name "Eclipse Public License - v 1.0"
             :url "http://www.eclipse.org/legal/epl-v10.html"
@@ -25,6 +26,12 @@
    [environ "1.0.0" :exclusions [org.clojure/clojure]]
    [hiccup "1.0.5" :exclusions [org.clojure/clojure]]
    [compojure "1.3.4" :exclusions [org.clojure/clojure]]
+   [ring/ring-servlet "1.3.2" :exclusions [org.clojure/clojure]]
+   [com.vaadin/vaadin-server "7.4.6"]
+   [com.vaadin/vaadin-themes "7.4.6"]
+   [com.vaadin/vaadin-widgets "7.4.6"]
+   [com.vaadin/vaadin-client-compiled "7.4.6"]
+   [com.vaadin/vaadin-client "7.4.6"]
    [org.clojure/tools.reader "0.9.2"]]
   :plugins [[lein-environ "1.0.0"]]
   :jvm-opts ^:replace ["-Xms1G" "-Xmx1G"

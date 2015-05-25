@@ -10,7 +10,7 @@
 ;;
 ;; You must not remove this notice, or any other, from this software.
 
-(ns jogurt.page
+(ns jogurt.ring.page
   "Pages"
   (:api dunaj)
   (:require [hiccup.core :as hc]
@@ -23,6 +23,7 @@
             [dunaj.uuid :as du]
             [jogurt.auth :refer [sign-in]]
             [jogurt.store :as js]
+            [jogurt.render :refer [purge-cache! render-post]]
             [dunaj.format.asciidoc :as dfa]
             [dunaj.string :as ds]
             [ring.util.response :as rur]
@@ -30,8 +31,11 @@
 
 (defn sign-out
   "Returns sign out hiccup div"
-  [cfg]
-  (seq [[:div.jghnew (he/link-to "/new" "Write new post")]
+  [cfg pid]
+  (seq [(when pid
+          [:div.jghnew (he/link-to (->str "/edit/?post-id=" pid)
+                                   "Edit current post")])
+        [:div.jghnew (he/link-to "/new" "Write new post")]
         [:div.jgsob (he/link-to "/signout" [:span "Sign out"])]]))
 
 (defn fetch-posts
@@ -54,77 +58,43 @@
   [timestamp]
   (.format date-format (instant date-instant-factory timestamp)))
 
-(def default-header
-  {:type :header
-   :under "_"
-   :equal "="
-   :title "placeholder"
-   :icons :font
-   :linkcss true
-   :stylesheet "/dd.css"
-   :coderay-linenums-mode "table"
-   :coderay-css "class"
-   :source-highlighter "coderay"})
-
-(defn parse-adoc
-  [content]
-  (let [x (concat [(assoc default-header
-                          :sectlinks false)]
-                  [content])
-        ad (str (print dfa/asciidoc (vec x)))]
-    #_(with-scope (spit! "temp.ad" ad [:create :truncate]))
-    (str (print (assoc dfa/convert :embedded? true) ad))))
-
-(def ad-cache (atom {}))
-
-(defn purge-cache!
-  []
-  (reset! ad-cache nil))
-
-(defn render-post
-  [id content]
-  (loop [pc (get @ad-cache id)]
-    (if pc
-      pc
-      (do (alter! ad-cache assoc id (parse-adoc content))
-          (recur (get @ad-cache id))))))
-
-(instant "2015")
-
 (defn page-template
-  [cfg auth store request content]
-  (let [pretty-clj (assoc pretty-clj :pretty-item-limit 0)
-        head [:head 
-              (hp/include-css "/static/dd.css"
-                              "//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"
-                              "/static/coderay-asciidoctor.css"
-                              "/static/style.css")
-              [:title "Jogurt"]]
-        header [:div#jghead
-                [:div (he/link-to "/" (he/image "/static/logo.png"))]
-                [:div (he/link-to "/" [:span.jghtitle "Jogurt blog"])]
-                [:div#jgsignup 
-                 (if (get-in request [:session :user-id]) 
-                   (sign-out cfg)
-                   (sign-in auth))]]
-        content [:div#jgcontent content]
-        footer [:div#jgfoot
-                [:p "Copyright 2015, Jozef Wagner"]
-                #_[:div
-                   [:p "Request is"]
-                   [:pre (str (print-one pretty-clj request))]]
-                #_[:div
-                   [:p "Config is"]
-                   [:pre (str (print-one pretty-clj cfg))]]]
-        body [:body [:div#jgpage header content footer]]]
-    (hp/html5 head body)))
+  ([cfg auth store request content]
+   (page-template cfg auth store request content nil))
+  ([cfg auth store request content pid]
+   (let [pretty-clj (assoc pretty-clj :pretty-item-limit 0)
+          head [:head 
+                (hp/include-css "/static/dd.css"
+                                "//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"
+                                "/static/coderay-asciidoctor.css"
+                                "/static/style.css")
+                [:title "Jogurt"]]
+          header [:div#jghead
+                  [:div (he/link-to "/" (he/image "/static/logo.png"))]
+                  [:div (he/link-to "/" [:span.jghtitle "Jogurt blog"])]
+                  [:div#jgsignup 
+                   (if (get-in request [:session :user-id]) 
+                     (sign-out cfg pid)
+                     (sign-in auth))]]
+          content [:div#jgcontent content]
+          footer [:div#jgfoot
+                  [:p "Copyright 2015, Jozef Wagner"]
+                  #_[:div
+                     [:p "Request is"]
+                     [:pre (str (print-one pretty-clj request))]]
+                  #_[:div
+                     [:p "Config is"]
+                     [:pre (str (print-one pretty-clj cfg))]]]
+          body [:body [:div#jgpage header content footer]]]
+      (hp/html5 head body))))
 
 (defn post-page
   "Returns index page in hiccup syntax"
   [cfg auth store request]
   (let [id-attr (js/id-attr store)
+        pid (:pid (:params request))
         content [[:p.desc (he/link-to "/" "Back to home")]
-                 (let [post (get-post store (:pid (:params request)))]
+                 (let [post (get-post store pid)]
                    [:div.jgpost
                     [:h2.jgtitle
                      (he/link-to
@@ -138,7 +108,7 @@
                             (post-date (:date post))
                             " by "
                             (author-name store(:author post)))]])]]
-    (page-template cfg auth store request (seq content))))
+    (page-template cfg auth store request (seq content) pid)))
 
 (defn new-page
   "Returns index page in hiccup syntax"

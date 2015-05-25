@@ -10,7 +10,7 @@
 ;;
 ;; You must not remove this notice, or any other, from this software.
 
-(ns jogurt.routes
+(ns jogurt.ring.routes
   "Web app routes"
   (:api dunaj)
   (:require
@@ -19,11 +19,12 @@
    [hiccup.page :as hp]
    [hiccup.element :as he]
    [jogurt.util.cfg :as jc]
-   [jogurt.page :as jp]
+   [jogurt.ring.page :as jp]
    [jogurt.auth :as ja]
    [jogurt.store :as js]
    [dunaj.uuid :as du]
    [ring.util.response :as rur]
+   [jogurt.session.global :as jsg]
    [compojure.core :as cc
     :refer [defroutes GET POST DELETE ANY context]])
   (:use
@@ -53,7 +54,8 @@
   (-acquire! [this]
     (let [schema (get cfg :schema [:users :posts])]
       (apply js/init! store schema))
-    (site (make-routes cfg auth store))))
+    (site (make-routes cfg auth store)
+          {:session {:store (jsg/memory-store)}})))
 
 (def routes-factory
   (->RoutesFactory nil nil nil))

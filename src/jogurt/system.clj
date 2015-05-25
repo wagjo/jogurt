@@ -17,7 +17,10 @@
             [jogurt.util :as ju]
             [jogurt.util.cfg :as juc :refer [sget-in]]
             [jogurt.server :refer [server-factory]]
-            [jogurt.routes :refer [routes-factory]]))
+            [jogurt.servlet.basic :refer [basic-servlet-factory]]
+            [jogurt.ring.routes :refer [routes-factory]]
+            [jogurt.servlet.myvaadinservlet :refer [servlet-factory]])
+  (:import [jogurt.servlet MyVaadinServlet]))
 
 (def cfg 
   (assoc (juc/cfg)
@@ -42,7 +45,7 @@
    :store store-factory
    :routes routes-factory
    :server server-factory
-   ))
+   :servlet servlet-factory))
 
 (defonce jogurt (atom nil))
 
@@ -68,6 +71,10 @@
   []
 
   (launch!)
+
+  (:servlet (first @jogurt))
+  (:routes jogurt)
+  jogurt
 
   (seq (map first (seq jogurt-system)))
 
